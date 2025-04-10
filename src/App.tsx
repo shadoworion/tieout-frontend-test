@@ -27,7 +27,6 @@ import { he as Clerk_heIL } from "./utils/clerk/localizations";
 import { graphRequest } from "./utils/hooks/graphql/request";
 import { WithPermission } from "./utils/hooks/react-router/WithPermission";
 import { SignedInRoute } from "./utils/hooks/react-router/SignedInRoute";
-import posthog from "posthog-js";
 
 const Pages = {
   Admin: {
@@ -70,7 +69,7 @@ export const AppWrapper = () => {
 
 const App = () => {
   const location = useLocation();
-  const { user, isSignedIn } = useUser();
+  const { isSignedIn } = useUser();
   const { getPermissions, permissions, resetPermissions } = usePermissions();
   const { organizationId, setOrganization } = useOrganization();
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -81,11 +80,6 @@ const App = () => {
       await graphRequest<User_SyncMutation, User_SyncMutationVariables>(
         User_SyncDocument
       ).then(async ({ user_sync }) => {
-        posthog.identify(user_sync.userId, {
-          name: user.fullName,
-          email: user.primaryEmailAddress.emailAddress,
-          clerkId: user.id,
-        });
         if (!organizationId) {
           await setOrganization(user_sync.organizationId);
         }
