@@ -1,0 +1,6 @@
+query sourceTrx_filter_subAccounts {
+  sourceTrx_filter_subAccounts {
+    accountId
+    account
+  }
+}

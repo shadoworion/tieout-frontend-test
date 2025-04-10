@@ -1,0 +1,6 @@
+mutation user_sync {
+  user_sync {
+    userId
+    organizationId
+  }
+}

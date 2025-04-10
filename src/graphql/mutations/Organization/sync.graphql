@@ -1,0 +1,3 @@
+mutation organization_sync($organizationId: String!) {
+  organization_sync(organizationId: $organizationId)
+}

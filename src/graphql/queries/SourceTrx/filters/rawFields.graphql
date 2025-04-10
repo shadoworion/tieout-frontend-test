@@ -1,0 +1,3 @@
+query sourceTrx_filter_rawFields($field: String!, $side: String) {
+  sourceTrx_filter_rawFields(field: $field, side: $side)
+}

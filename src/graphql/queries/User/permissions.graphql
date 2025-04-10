@@ -1,0 +1,6 @@
+query user_permissions {
+  user_permissions {
+    organizationId
+    permissions
+  }
+}
