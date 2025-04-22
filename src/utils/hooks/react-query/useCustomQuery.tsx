@@ -1,8 +1,6 @@
 import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { RequestDocument } from "graphql-request";
-import { useOrganization } from "../../globals";
 import { client } from "../graphql/client";
-import { useAuth } from "@clerk/clerk-react";
 
 type QueryProps<TQueryFnData, V, TData = TQueryFnData> = {
   query: RequestDocument;
@@ -22,16 +20,15 @@ export function useCustomQuery<TQueryFnData, V, TData = TQueryFnData>({
   refetchVariables,
   organizationId,
 }: QueryProps<TQueryFnData, V, TData>) {
-  const { getToken } = useAuth();
   return useQuery({
     queryKey: variables
       ? [query, variables, refetchVariables]
       : [query, refetchVariables],
     queryFn: async () => {
-      client.setHeader("Authorization", `Bearer ${await getToken()}`);
+      client.setHeader("Authorization", `Bearer ag-grid-test`);
       client.setHeader(
         "B-ORGANIZATION",
-        organizationId || useOrganization.getState().organizationId
+        "bee03288-fe80-4503-8f4c-decd248d49c0"
       );
       return await client.request<TQueryFnData, any>(query, variables);
     },

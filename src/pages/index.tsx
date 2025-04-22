@@ -5,25 +5,23 @@ import {
   DefaultMenuItem,
   GetContextMenuItemsParams,
   IServerSideGetRowsParams,
-  ISetFilter,
   MenuItemDef,
   NewValueParams,
   RowClassParams,
   ValueFormatterParams,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
-import { AgTable } from "../../../components/Table";
-import { useI18nContext } from "../../../i18n/i18n-react";
+import { AgTable } from "../components/Table";
+import { useI18nContext } from "../i18n/i18n-react";
 import {
   autoSizeColumns,
   copyId,
   fitColumns,
   refreshData,
   resetFilters,
-} from "../../../components/Table/commons/contextMenu";
-import { AgTextboxCell } from "../../../components/Table/commons/textboxCell";
-import { AgDateCell } from "../../../components/Table/commons/dateCell";
-import { useOrganization } from "../../../utils/globals";
+} from "../components/Table/commons/contextMenu";
+import { AgTextboxCell } from "../components/Table/commons/textboxCell";
+import { AgDateCell } from "../components/Table/commons/dateCell";
 import {
   SourceTrx_Filter_AccountsQuery,
   SourceTrx_Filter_AccountsQueryVariables,
@@ -41,20 +39,19 @@ import {
   SourceTrx_Filter_MethodsQueryVariables,
   SourceTrx_Filter_MethodsDocument,
   Outlet,
-} from "../../../generated/graphql";
+} from "../generated/graphql";
 import { App } from "antd";
-import { graphRequest } from "../../../utils/hooks/graphql/request";
-import { AgTagCell } from "../../../components/Table/commons/tagCell";
-import { normalizeFilterModel } from "../../../components/Table/commons/filterNormalizer";
-import { setFilter } from "../../../components/Table/commons/setFilterNormalizer";
-import { valueFormatter } from "../../../components/Table/commons/valueFormatter";
+import { graphRequest } from "../utils/hooks/graphql/request";
+import { AgTagCell } from "../components/Table/commons/tagCell";
+import { normalizeFilterModel } from "../components/Table/commons/filterNormalizer";
+import { setFilter } from "../components/Table/commons/setFilterNormalizer";
+import { valueFormatter } from "../components/Table/commons/valueFormatter";
 import { BiTransfer } from "react-icons/bi";
-import { formatNumber } from "../../../utils/shared";
-import { setFilterDoubleClick } from "../../../components/Table/commons/setFilterDoubleClick";
-import { AgCustomCell } from "../../../components/Table/commons/customCell";
+import { formatNumber } from "../utils/shared";
+import { setFilterDoubleClick } from "../components/Table/commons/setFilterDoubleClick";
+import { AgCustomCell } from "../components/Table/commons/customCell";
 import { RiNftLine } from "react-icons/ri";
 import { IoDocumentAttachOutline } from "react-icons/io5";
-import { useSession } from "@clerk/clerk-react";
 import axios from "axios";
 import dayjs from "dayjs";
 
@@ -64,78 +61,60 @@ const SourceTrx = () => {
   const { LL } = useI18nContext();
   const { notification } = App.useApp();
   const gridRef = useRef<AgGridReact<ISourceTrx>>();
-  const { session } = useSession();
 
-  const serverSideDatasource = {
-    getRows: async (params: IServerSideGetRowsParams<ISourceTrx>) => {
-      const {
-        request: { startRow, endRow, sortModel, filterModel },
-        success,
-        fail,
-      } = params;
+  const onGridReady = useCallback(
+    ({ api }) =>
+      api.setGridOption("serverSideDatasource", {
+        getRows: async (params: IServerSideGetRowsParams<ISourceTrx>) => {
+          const {
+            request: { startRow, endRow, sortModel, filterModel },
+            success,
+            fail,
+          } = params;
 
-      const { timeZone } = Intl.DateTimeFormat().resolvedOptions();
+          const { timeZone } = Intl.DateTimeFormat().resolvedOptions();
 
-      console.log("fire server request");
-      axios
-        .post(
-          "https://mamfoin5eyec6lowydywj6mmji0mzebh.lambda-url.eu-west-1.on.aws/",
-          {
-            query: "sourceTrx_list",
-            startRow,
-            endRow,
-            sortModel,
-            filterModel: normalizeFilterModel(filterModel, {
-              comments: {
-                toLowerCase: true,
+          axios
+            .post(
+              "https://mamfoin5eyec6lowydywj6mmji0mzebh.lambda-url.eu-west-1.on.aws/",
+              {
+                query: "sourceTrx_list",
+                startRow,
+                endRow,
+                sortModel,
+                filterModel: normalizeFilterModel(filterModel, {
+                  comments: {
+                    toLowerCase: true,
+                  },
+                }),
+                currencies: [],
+                address: null,
+                tags: [],
+                showNotNormalized: "include",
+                showIgnored: "include",
+                showEmpty: "include",
+                showManuals: "include",
+                showWalletsOnly: false,
+                showTransfers: "include",
+                showNfts: "include",
+                timezone: timeZone,
               },
-            }),
-            currencies: [],
-            address: null,
-            tags: [],
-            showNotNormalized: "include",
-            showIgnored: "include",
-            showEmpty: "include",
-            showManuals: "include",
-            showWalletsOnly: false,
-            showTransfers: "include",
-            showNfts: "include",
-            timezone: timeZone,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${await session.getToken()}`,
-              "B-ORGANIZATION": useOrganization.getState().organizationId,
-            },
-          }
-        )
-        .then(({ data }) => {
-          console.log("fetched data");
-          success(data);
-        })
-        .catch((error) => {
-          console.error(error);
-          fail();
-        });
-    },
-  };
-
-  useOrganization.subscribe(() => {
-    gridRef.current?.api.refreshServerSide({ purge: true });
-    [
-      "st.account",
-      "tm.method",
-      "tm.subAccountId",
-      "buy.currency",
-      "sell.currency",
-      "fee.currency",
-      "st.bitqueryMethod",
-    ].forEach((item) => {
-      gridRef.current?.api
-        .getColumnFilterInstance(item)
-        .then((setFilter: ISetFilter) => setFilter?.refreshFilterValues());
-    });
-  });
+              {
+                headers: {
+                  Authorization: `Bearer ag-grid-test`,
+                  "B-ORGANIZATION": "bee03288-fe80-4503-8f4c-decd248d49c0",
+                },
+              }
+            )
+            .then(({ data }) => success(data))
+            .catch((error) => {
+              console.error(error);
+              fail();
+            });
+        },
+      }),
+    []
+  );
 
   const NftCell = (props: ValueFormatterParams, nft: string | null) => {
     return (
@@ -651,8 +630,8 @@ const SourceTrx = () => {
             suppressMovable: false,
           }}
           rowModelType="serverSide"
-          serverSideDatasource={serverSideDatasource}
           pagination
+          onGridReady={onGridReady}
           suppressAggFuncInHeader
           rowSelection={{
             mode: "multiRow",

@@ -1,18 +1,12 @@
 import { RequestDocument } from "graphql-request";
-import { useOrganization } from "../../globals";
 import { client } from "./client";
-import { BrowserClerk } from "@clerk/clerk-react";
 
 export const graphRequest = async <T, V>(
   query: RequestDocument,
   variables?: V,
   skipCache?: boolean
 ): Promise<T> => {
-  const token =
-    (await ((window as any).Clerk as BrowserClerk).session?.getToken({
-      skipCache: !!skipCache,
-    })) || "none";
-  client.setHeader("Authorization", `Bearer ${token}`);
-  client.setHeader("B-ORGANIZATION", useOrganization.getState().organizationId);
+  client.setHeader("Authorization", `Bearer ag-grid-test`);
+  client.setHeader("B-ORGANIZATION", "bee03288-fe80-4503-8f4c-decd248d49c0");
   return await client.request<T, any>(query, variables);
 };
